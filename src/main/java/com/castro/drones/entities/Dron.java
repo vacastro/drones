@@ -18,7 +18,7 @@ public class Dron {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	private Long idDron;
 	
 	@Column(nullable=false, length=100)
 	private String serialNumber;
