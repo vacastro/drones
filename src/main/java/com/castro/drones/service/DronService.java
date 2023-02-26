@@ -44,36 +44,32 @@ public class DronService {
 	
 	public Dron validationDron(DronData dronData) {
 		
-		boolean serialNum= dronData.getSerialNumber().trim().equals(StringUtils.EMPTY);
+		boolean serialNum = dronData.getSerialNumber().trim().equals(StringUtils.EMPTY);
 		boolean model = dronData.getDronModel().trim().equals(StringUtils.EMPTY);
-		
-		DronModel dModel= null;
-		String serialN="";
-		
+
+		DronModel dModel = null;
+		String serialN = "";
+
 		if (serialNum) {
 			throw new ValidationException("Serial Number can not be empty");
+		} else if (dronData.getSerialNumber().trim().length() > 100) {
+			throw new ValidationException("the serial number exceeds the number of allowed digits");
+		} else {
+			serialN = dronData.getSerialNumber().trim();
 		}
-		
+
 		if (model) {
 			throw new ValidationException("Dron Model can not be empty");
-		}
-		
-		for (DronModel dronModel : DronModel.values()) {
-			if (dronModel.toString().equals(dronData.getDronModel().trim().toUpperCase())) {
-				dModel = dronModel;
+		} else {
+			for (DronModel dronModel : DronModel.values()) {
+				if (dronModel.toString().equals(dronData.getDronModel().trim().toUpperCase())) {
+					dModel = dronModel;
+				}
 			}
 		}
 		
 		if(dModel == null) {
 			throw new ValidationException("that model does not exist for this type of device");
-		}
-		
-		
-		if(dronData.getSerialNumber().length()>100) {
-			throw new ValidationException("the serial number exceeds the number of allowed digits");
-		} else {
-			
-			serialN =dronData.getSerialNumber().toUpperCase();
 		}
 		
 		dron = new Dron(serialN, dModel);
