@@ -1,7 +1,9 @@
 package com.castro.drones.service;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,11 +26,32 @@ public class DronService {
 	@Autowired
 	DronRepository dronRepository;
 	
-	//TO DO
-	public int checkBatteryStatus() {
-		return dron.getBatteryCapacity();
-	}
+	public DronResponse checkBatteryStatus(long idDron) {
+		DronResponse response = new DronResponse();
+		response.setTimestamp(new Timestamp(System.currentTimeMillis()));
+		
+		int dronBattery = 0;
+		
+		Optional<Dron> dronN = dronRepository.findById(idDron);
+		
+		if(dronN.isPresent()) {
+			dron= dronN.get();
+		}else {
+			throw new DronException("wrong device number, the device number is not found in the database");
+		}
+		
+		dronBattery = dron.getBatteryCapacity();
 	
+		if(dronBattery <25) {
+			throw new DronException("Insufficient battery: " + dronBattery +"%");
+		}else {
+			response.setSuccess(Boolean.TRUE);
+			response.setResultString("device with enough battery: " + dronBattery +"%" );
+			response.setDron(dron);
+		}
+		
+		return response;
+	}
 	public DronResponse createDron(DronData dronData) throws Exception{
 
 		dron = validationDron(dronData);
@@ -47,7 +70,7 @@ public class DronService {
 		boolean serialNum = dronData.getSerialNumber().trim().equals(StringUtils.EMPTY);
 		boolean model = dronData.getDronModel().trim().equals(StringUtils.EMPTY);
 
-		DronModel dModel = null;
+		String dModel = null;
 		String serialN = "";
 
 		if (serialNum) {
@@ -63,7 +86,7 @@ public class DronService {
 		} else {
 			for (DronModel dronModel : DronModel.values()) {
 				if (dronModel.toString().equals(dronData.getDronModel().trim().toUpperCase())) {
-					dModel = dronModel;
+					dModel = dronModel.toString();
 				}
 			}
 		}
@@ -101,9 +124,8 @@ public class DronService {
 		return dronesList;
 	}
 	
-	public List<Dron> getIdleDrones() {
+	public List<Dron> getAvailableDrones() {
 		
-
 		List<Dron> dronesList = null;
 				
 		dronesList=dronRepository.findByIdleDron();
@@ -113,6 +135,25 @@ public class DronService {
 		}
 
 		return dronesList;
+	}
+	
+	public Dron getDronReadyToUse() {
+		
+		List<Dron> dronesList = getAvailableDrones();
+		
+		List<Dron> listDronesReady = new ArrayList<Dron>();
+		
+		for(Dron dronN: dronesList) {
+			if (dronN.getBatteryCapacity() >25) {
+				listDronesReady.add(dronN);
+			}
+		}
+		
+		if(listDronesReady.size() ==0) {
+			throw new DronException("no devices available to use");
+		}
+		
+		return listDronesReady.get(0);
 	}
 
 

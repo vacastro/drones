@@ -1,6 +1,5 @@
 package com.castro.drones.entities;
 
-import com.castro.drones.enums.DronModel;
 import com.castro.drones.enums.Status;
 
 import jakarta.persistence.*;
@@ -18,13 +17,13 @@ public class Dron {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long idDron;
+	private long idDron;
 	
 	@Column(nullable=false, length=100)
 	private String serialNumber;
 	
 	@Column(nullable=false)
-	private DronModel dronModel;
+	private String dronModel;
 	
 	@Column(nullable=false)
 	private static final int WEIGHT_LIMIT = 500;
@@ -33,13 +32,13 @@ public class Dron {
 	private int batteryCapacity;
 	
 	@Column(nullable=false)
-	private Status status;
+	private String status;
 	
 	
-	public Dron(String serialNumber, DronModel dronModel) {
+	public Dron(String serialNumber, String dronModel) {
 		this.serialNumber = serialNumber;
 		this.dronModel = dronModel;
-		this.status = Status.IDLE;
+		this.status = Status.IDLE.toString();
 		this.batteryCapacity = 100;
 		
 	}
