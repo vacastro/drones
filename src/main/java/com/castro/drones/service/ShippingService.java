@@ -78,47 +78,46 @@ public class ShippingService {
 	}
 	
 	
-	public ShippingResponse loadingShipping (long shippingId) {
+	public ShippingResponse loadingShipping (ShippingData shippingData) {
 		ShippingResponse response = new ShippingResponse();
 		response.setTimestamp(new Timestamp(System.currentTimeMillis()));
 		
-		shipping = verifyShipping(shippingId);
-		
 		dron = dronService.getDronReadyToUse();
-		
+	
 		shipping.setDron(dron);
 		shippingRepository.assignDevice(dron, shipping.getIdShipping());
-		
+
 		dron.setStatus(Status.LOADING.toString());
 		dronRepository.updateDron(dron.getStatus(), dron.getIdDron());
 		shippingItinerary = new ShippingItinerary(shipping);
-		shippingItinerary.getShippingItineraryPK().setShippingStatus(ShippingStatus.ON_PROCESS.toString());
+		shippingItinerary.getPk().setShippingStatus(ShippingStatus.ON_PROCESS.toString());
 		shippingItineraryRepository.save(shippingItinerary);
 
 		response.setSuccess(Boolean.TRUE);
 		response.setResultString("the shipment is ready to be loaded");
 		response.setShipping(shipping);
+//		response.getShipping().setListShippingItinerary(shippingItineraryRepository.getItinerayByShipping(shipping.getIdShipping()));;
 		return response;
 	}
 	
 	
-	public Shipping verifyShipping(long idShipping) {
-		
-		Optional<Shipping> shippingO = shippingRepository.findById(idShipping);
-		if (shippingO.isPresent()) {
-			shipping = shippingO.get();
-		}else {
-			throw new ShippingException("shipping number incorrect or no registered in database");
-		}
-		
-		List<ShippingItinerary> itineraries = shippingItineraryRepository.getItinerayByShipping(idShipping);
-		
-		if(itineraries.get(0).getShippingItineraryPK().getShippingStatus().equals(ShippingStatus.ORDERED.toString())) {
-			return shipping;
-		}else {
-			throw new ShippingException("esta entrega no se puede poner a cargar porque su estado actual es " + itineraries.get(0).getShippingItineraryPK().getShippingStatus());
-		}
-
-	}
+//	public Shipping verifyShipping(long idShipping) {
+//		
+//		Optional<Shipping> shippingO = shippingRepository.findById(idShipping);
+//		if (shippingO.isPresent()) {
+//			shipping = shippingO.get();
+//		}else {
+//			throw new ShippingException("shipping number incorrect or no registered in database");
+//		}
+//		
+//		List<ShippingItinerary> itineraries = shippingItineraryRepository.getItinerayByShipping(idShipping);
+//		
+//		if(itineraries.get(0).getPk().getShippingStatus().equals(ShippingStatus.ORDERED.toString())) {
+//			return shipping;
+//		}else {
+//			throw new ShippingException("esta entrega no se puede poner a cargar porque su estado actual es " + itineraries.get(0).getPk().getShippingStatus());
+//		}
+//
+//	}
 
 }

@@ -15,7 +15,7 @@ public class ShippingItinerary {
 	
 	//TODO chequear la primary key compuesta
 	@EmbeddedId
-	private ShippingItineraryPK shippingItineraryPK;
+	private ShippingItineraryPK pk;
 	
 	@ManyToOne
 	@JoinColumn(name = "idShipping", nullable = false, updatable = false)
@@ -25,7 +25,7 @@ public class ShippingItinerary {
 	public ShippingItinerary(Shipping shipping) {
 		super();
 		this.shipping = shipping;
-		this.shippingItineraryPK = new ShippingItineraryPK();
+		this.pk = new ShippingItineraryPK();
 	}
 	
 	

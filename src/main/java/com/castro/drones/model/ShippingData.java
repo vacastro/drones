@@ -9,6 +9,7 @@ import lombok.Setter;
 @AllArgsConstructor @NoArgsConstructor
 public class ShippingData {
 	
+	private long idShipping;
 	private int idUser;	
 	private int invoice;
 	private String adress;

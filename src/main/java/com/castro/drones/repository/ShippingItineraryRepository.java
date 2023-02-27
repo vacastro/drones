@@ -6,13 +6,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import com.castro.drones.entities.Shipping;
 import com.castro.drones.entities.ShippingItinerary;
+import com.castro.drones.entities.ShippingItineraryPK;
 
 @Repository
-public interface ShippingItineraryRepository extends JpaRepository<ShippingItinerary, Long> {
+public interface ShippingItineraryRepository extends JpaRepository<ShippingItinerary, ShippingItineraryPK> {
 	
-	//TODO agregar order by date desc --> ver bien lo de la primary key
-	@Query(value= "SELECT u FROM ShippingItinerary u WHERE u.shipping =?1")
+	@Query(value= "SELECT u FROM ShippingItinerary u WHERE u.shipping =?1 ORDER BY u.pk.date DESC")
 	List<ShippingItinerary> getItinerayByShipping(long idShipping);
 
 }

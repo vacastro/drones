@@ -17,5 +17,4 @@ public interface ShippingRepository extends JpaRepository<Shipping, Long>{
 	@Query(value = "UPDATE Shipping u SET u.dron = ?1 WHERE u.idShipping = ?2")
 	void assignDevice(Dron Dron, long idShipping );
 	
-
 }

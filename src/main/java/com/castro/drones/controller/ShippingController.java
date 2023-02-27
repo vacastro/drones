@@ -30,21 +30,21 @@ public class ShippingController{
 		return shippingService.createShipping(shippingData);
 	}
 	
+	//TODO el controller no trae la lista - error serializable
 	@GetMapping("/all-shippings")
 	public List<Shipping> getAllShipping(){
 		return shippingService.findAllShippings();
 	}
 	
+	//TODO el controller no trae la lista - error serializable
 	@GetMapping("/all-itineraries")
 	public List<ShippingItinerary> getAllItineraries(){
 		return shippingService.findAllItineraries();
 	}
 	
-	//TODO VER EL ERROR - SALE BAD REQUEST EN POSTMAN
-	//JSON parse error: Cannot deserialize value of type `long` from Object value (token `JsonToken.START_OBJECT`)
 	@PostMapping (value = "/confirm-shipping")
-	public ShippingResponse confirmShipping (@RequestBody long idShipping) throws Exception{
-		return shippingService.loadingShipping(idShipping);
+	public ShippingResponse confirmShipping (@RequestBody ShippingData shippingData) throws Exception{
+		return shippingService.loadingShipping(shippingData);
 	}
 	
 	
