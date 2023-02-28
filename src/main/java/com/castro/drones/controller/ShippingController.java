@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.castro.drones.entities.Shipping;
-import com.castro.drones.entities.ShippingItinerary;
+import com.castro.drones.entities.Itinerary;
 import com.castro.drones.model.ShippingData;
 import com.castro.drones.response.ShippingResponse;
 import com.castro.drones.service.ShippingService;
@@ -38,7 +38,7 @@ public class ShippingController{
 	
 	//TODO el controller no trae la lista - error serializable
 	@GetMapping("/all-itineraries")
-	public List<ShippingItinerary> getAllItineraries(){
+	public List<Itinerary> getAllItineraries(){
 		return shippingService.findAllItineraries();
 	}
 	

@@ -12,7 +12,7 @@ import lombok.ToString;
 
 @Embeddable
 @Getter @Setter @ToString
-public class ShippingItineraryPK implements Serializable {
+public class ItineraryPK implements Serializable {
 	
 	//TODO chequear que la primary key compuesta este bien hecha
 	@Column
@@ -21,7 +21,7 @@ public class ShippingItineraryPK implements Serializable {
 	@Column
 	private String shippingStatus;
 
-	public ShippingItineraryPK() {
+	public ItineraryPK() {
 		super();
 		this.date = new Date();
 		this.shippingStatus = ShippingStatus.ORDERED.toString();

@@ -41,7 +41,7 @@ public class Shipping {
 	private Dron dron;
 	
 	@OneToMany (cascade = CascadeType.ALL, mappedBy = "shipping")	
-	private List<ShippingItinerary> listShippingItinerary;
+	private List<Itinerary> listItinerary;
 	
 	@OneToMany (cascade = CascadeType.ALL, mappedBy = "shipping")
 	private List<MedicineDispensed> listMedicine;
@@ -53,7 +53,7 @@ public class Shipping {
 		this.adress = adress;
 		this.date = new Date();
 		this.weight = 0;
-		this.listShippingItinerary = new ArrayList<ShippingItinerary>();
+		this.listItinerary = new ArrayList<Itinerary>();
 		this.listMedicine = new ArrayList<MedicineDispensed>();
 	}
 	

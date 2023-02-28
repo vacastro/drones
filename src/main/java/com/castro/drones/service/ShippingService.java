@@ -9,13 +9,13 @@ import org.springframework.stereotype.Service;
 
 import com.castro.drones.entities.Dron;
 import com.castro.drones.entities.Shipping;
-import com.castro.drones.entities.ShippingItinerary;
+import com.castro.drones.entities.Itinerary;
 import com.castro.drones.enums.ShippingStatus;
 import com.castro.drones.enums.Status;
 import com.castro.drones.exception.ShippingException;
 import com.castro.drones.model.ShippingData;
 import com.castro.drones.repository.DronRepository;
-import com.castro.drones.repository.ShippingItineraryRepository;
+import com.castro.drones.repository.ItineraryRepository;
 import com.castro.drones.repository.ShippingRepository;
 import com.castro.drones.response.ShippingResponse;
 
@@ -23,14 +23,14 @@ import com.castro.drones.response.ShippingResponse;
 public class ShippingService {
 	
 	Shipping shipping = null;
-	ShippingItinerary shippingItinerary = null;
+	Itinerary itinerary = null;
 	Dron dron =null;
 	
 	@Autowired
 	ShippingRepository shippingRepository;
 	
 	@Autowired
-	ShippingItineraryRepository shippingItineraryRepository;
+	ItineraryRepository itineraryRepository;
 	
 	@Autowired
 	DronRepository dronRepository;
@@ -44,8 +44,8 @@ public class ShippingService {
 		ShippingResponse response = new ShippingResponse();
 		response.setTimestamp(new Timestamp(System.currentTimeMillis()));
 		shippingRepository.save(shipping);
-		shippingItinerary = new ShippingItinerary(shipping);
-		shippingItineraryRepository.save(shippingItinerary);
+		itinerary = new Itinerary(shipping);
+		itineraryRepository.save(itinerary);
 		response.setSuccess(Boolean.TRUE);
 		response.setResultString("shipping registered successfully");
 		response.setShipping(shipping);
@@ -66,9 +66,9 @@ public class ShippingService {
 	}
 	
 	//TODO revisar funcion (el controller devuelve errores)
-	public List<ShippingItinerary> findAllItineraries() {
-		List<ShippingItinerary> listItineraries =null;
-		listItineraries = shippingItineraryRepository.findAll();
+	public List<Itinerary> findAllItineraries() {
+		List<Itinerary> listItineraries =null;
+		listItineraries = itineraryRepository.findAll();
 		
 		if(listItineraries.size() ==0) {
 			throw new ShippingException("no itineraries registered yet");
@@ -89,9 +89,9 @@ public class ShippingService {
 
 		dron.setStatus(Status.LOADING.toString());
 		dronRepository.updateDron(dron.getStatus(), dron.getIdDron());
-		shippingItinerary = new ShippingItinerary(shipping);
-		shippingItinerary.getPk().setShippingStatus(ShippingStatus.ON_PROCESS.toString());
-		shippingItineraryRepository.save(shippingItinerary);
+		itinerary = new Itinerary(shipping);
+		itinerary.getPk().setShippingStatus(ShippingStatus.ON_PROCESS.toString());
+		itineraryRepository.save(itinerary);
 
 		response.setSuccess(Boolean.TRUE);
 		response.setResultString("the shipment is ready to be loaded");
