@@ -1,8 +1,11 @@
 package com.castro.drones.entities;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -15,7 +18,9 @@ import lombok.ToString;
 @Getter @Setter @AllArgsConstructor @NoArgsConstructor @Data @ToString
 @Entity
 @Table
-public class Shipping {
+public class Shipping implements Serializable{
+	
+	private static final long serialVerisionUID =1L;
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,10 +45,12 @@ public class Shipping {
 	@JoinColumn(name = "idDron", nullable = true, updatable = false)
 	private Dron dron;
 	
-	@OneToMany (cascade = CascadeType.ALL, mappedBy = "shipping")	
+	@OneToMany (fetch= FetchType.EAGER ,cascade = CascadeType.ALL, mappedBy = "shipping", orphanRemoval=true)	
+	@JsonManagedReference
 	private List<Itinerary> listItinerary;
 	
-	@OneToMany (cascade = CascadeType.ALL, mappedBy = "shipping")
+	@OneToMany (fetch= FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "shipping",orphanRemoval=true )
+	@JsonManagedReference
 	private List<MedicineDispensed> listMedicine;
 
 	public Shipping(int idUser, int invoice, String adress) {

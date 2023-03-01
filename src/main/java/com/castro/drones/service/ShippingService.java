@@ -13,6 +13,7 @@ import com.castro.drones.entities.Itinerary;
 import com.castro.drones.enums.ShippingStatus;
 import com.castro.drones.enums.Status;
 import com.castro.drones.exception.ShippingException;
+import com.castro.drones.exception.ValidationException;
 import com.castro.drones.model.ShippingData;
 import com.castro.drones.repository.DronRepository;
 import com.castro.drones.repository.ItineraryRepository;
@@ -25,6 +26,7 @@ public class ShippingService {
 	Shipping shipping = null;
 	Itinerary itinerary = null;
 	Dron dron =null;
+	ShippingResponse response = null;
 	
 	@Autowired
 	ShippingRepository shippingRepository;
@@ -38,22 +40,19 @@ public class ShippingService {
 	@Autowired
 	DronService dronService;
 	
-	public ShippingResponse createShipping(ShippingData shippingData) {
+	public ShippingResponse createShipping(Shipping shippingData) {
 		
 		shipping = new Shipping(shippingData.getIdUser(), shippingData.getInvoice(), shippingData.getAdress());
-		ShippingResponse response = new ShippingResponse();
-		response.setTimestamp(new Timestamp(System.currentTimeMillis()));
+		verifyShipping(shipping);
+		
 		shippingRepository.save(shipping);
 		itinerary = new Itinerary(shipping);
 		itineraryRepository.save(itinerary);
-		response.setSuccess(Boolean.TRUE);
-		response.setResultString("shipping registered successfully");
-		response.setShipping(shipping);
-
+		
+		response =new ShippingResponse("shipping registered successfully", shipping);
 		return response;
 	}
 	
-	//TODO revisar funcion (el controller devuelve errores)
 	public List<Shipping> findAllShippings() {
 		List<Shipping> listShipping = null;
 		listShipping = shippingRepository.findAll();
@@ -61,26 +60,50 @@ public class ShippingService {
 		if (listShipping.size() ==0) {
 			throw new ShippingException("no shipping orders registered yet");
 		} 
-		
 		return listShipping;
 	}
 	
-	//TODO revisar funcion (el controller devuelve errores)
+	public Shipping findShippingByInvoice(int invoice) {
+		Optional<Shipping> searchShipping = shippingRepository.findByInvoice(invoice);
+		if(searchShipping.isPresent()) {
+			shipping = searchShipping.get();
+		}else {
+			throw new ShippingException("no se localizo el shipping");
+		}
+		return shipping;
+	}
+	
+	public void verifyShipping(Shipping shipping) {
+		Optional<Shipping> searchShipping = shippingRepository.findByInvoice(shipping.getInvoice());
+		if(searchShipping.isPresent()) {
+			throw new ValidationException("existe un shipping con igual numero de invoice");
+		}
+	}
+	
+	public Shipping findShippingById(long id) {
+		
+		Optional<Shipping>searchShipping = shippingRepository.findById(id);
+		if(searchShipping.isPresent()) {
+			shipping = searchShipping.get();
+		}else {
+			throw new ShippingException("no se localizo el shipping");
+		}	
+		return shipping;
+	}
+	
 	public List<Itinerary> findAllItineraries() {
 		List<Itinerary> listItineraries =null;
 		listItineraries = itineraryRepository.findAll();
 		
 		if(listItineraries.size() ==0) {
 			throw new ShippingException("no itineraries registered yet");
-		}
-		
+		}		
 		return listItineraries;
 	}
 	
 	
-	public ShippingResponse loadingShipping (ShippingData shippingData) {
-		ShippingResponse response = new ShippingResponse();
-		response.setTimestamp(new Timestamp(System.currentTimeMillis()));
+	public ShippingResponse loadingShipping (Shipping shippingData) {
+		shipping= findShippingById(shippingData.getIdShipping());
 		
 		dron = dronService.getDronReadyToUse();
 	
@@ -93,10 +116,7 @@ public class ShippingService {
 		itinerary.getPk().setShippingStatus(ShippingStatus.ON_PROCESS.toString());
 		itineraryRepository.save(itinerary);
 
-		response.setSuccess(Boolean.TRUE);
-		response.setResultString("the shipment is ready to be loaded");
-		response.setShipping(shipping);
-//		response.getShipping().setListShippingItinerary(shippingItineraryRepository.getItinerayByShipping(shipping.getIdShipping()));;
+		response = new ShippingResponse("el envio esta listo para ser cargado, se asigno un dron", shipping);
 		return response;
 	}
 	
@@ -119,5 +139,64 @@ public class ShippingService {
 //		}
 //
 //	}
+	
+	
+	//TODO evitar que un shipping quede en estado de finalizado cuando no tiene productos agregados
+	public ShippingResponse loadedShipping(ShippingData shippingData) {
+		ShippingResponse response = new ShippingResponse();
+		response.setTimestamp(new Timestamp(System.currentTimeMillis()));
+		
+		dron = shipping.getDron();
+
+		dron.setStatus(Status.LOADED.toString());
+		dronRepository.updateDron(dron.getStatus(), dron.getIdDron());
+		itinerary = new Itinerary(shipping);
+		itinerary.getPk().setShippingStatus(ShippingStatus.PACKED.toString());
+		itineraryRepository.save(itinerary);
+
+		response.setSuccess(Boolean.TRUE);
+		response.setResultString("the shipment is ready");
+		response.setShipping(shipping);
+//		response.getShipping().setListShippingItinerary(shippingItineraryRepository.getItinerayByShipping(shipping.getIdShipping()));;
+		return response;
+	}
+	
+	public ShippingResponse deliveringShipping(ShippingData shippingData) {
+		ShippingResponse response = new ShippingResponse();
+		response.setTimestamp(new Timestamp(System.currentTimeMillis()));
+		
+		dron = shipping.getDron();
+
+		dron.setStatus(Status.DELIVERING.toString());
+		dronRepository.updateDron(dron.getStatus(), dron.getIdDron());
+		itinerary = new Itinerary(shipping);
+		itinerary.getPk().setShippingStatus(ShippingStatus.IN_TRANSIT.toString());
+		itineraryRepository.save(itinerary);
+
+		response.setSuccess(Boolean.TRUE);
+		response.setResultString("the shipment is in transit");
+		response.setShipping(shipping);
+//		response.getShipping().setListShippingItinerary(shippingItineraryRepository.getItinerayByShipping(shipping.getIdShipping()));;
+		return response;
+	}
+	
+	public ShippingResponse deliveredShipping(ShippingData shippingData) {
+		ShippingResponse response = new ShippingResponse();
+		response.setTimestamp(new Timestamp(System.currentTimeMillis()));
+		
+		dron = shipping.getDron();
+
+		dron.setStatus(Status.DELIVERED.toString());
+		dronRepository.updateDron(dron.getStatus(), dron.getIdDron());
+		itinerary = new Itinerary(shipping);
+		itinerary.getPk().setShippingStatus(ShippingStatus.DELIVERED.toString());
+		itineraryRepository.save(itinerary);
+
+		response.setSuccess(Boolean.TRUE);
+		response.setResultString("the shipment is in delivered");
+		response.setShipping(shipping);
+//		response.getShipping().setListShippingItinerary(shippingItineraryRepository.getItinerayByShipping(shipping.getIdShipping()));;
+		return response;
+	}
 
 }

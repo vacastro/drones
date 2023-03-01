@@ -1,5 +1,7 @@
 package com.castro.drones.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -16,5 +18,8 @@ public interface ShippingRepository extends JpaRepository<Shipping, Long>{
 	@Modifying()
 	@Query(value = "UPDATE Shipping u SET u.dron = ?1 WHERE u.idShipping = ?2")
 	void assignDevice(Dron Dron, long idShipping );
+
+	@Query(value = "SELECT u FROM Shipping u WHERE u.invoice =?1")
+	Optional<Shipping> findByInvoice(int invoice);
 	
 }

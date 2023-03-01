@@ -26,7 +26,7 @@ public class Dron {
 	private String dronModel;
 	
 	@Column(nullable=false)
-	private static final int WEIGHT_LIMIT = 500;
+	private final int WEIGHT_LIMIT = 500;
 	
 	@Column(nullable=false)
 	private int batteryCapacity;

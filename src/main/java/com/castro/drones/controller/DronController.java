@@ -26,8 +26,8 @@ public class DronController {
 	
 	@PostMapping (value = "/dron-register")
 	@ResponseStatus(HttpStatus.CREATED)
-	public DronResponse newDron (@RequestBody DronData dronData) throws Exception{
-		return dronService.createDron(dronData);
+	public DronResponse newDron (@RequestBody Dron dron) throws Exception{
+		return dronService.createDron(dron);
 	}
 	
 	@GetMapping("/all-drones")
@@ -43,6 +43,11 @@ public class DronController {
 	@GetMapping("/battery-status/{idDron}")
 	public DronResponse checkBattery(@PathVariable("idDron") long idDron){
 		return dronService.checkBatteryStatus(idDron);
+	}
+	
+	@GetMapping("/search-dron/{idDron}")
+	public Dron searchDron(@PathVariable("idDron") long idDron){
+		return dronService.getDronByID(idDron);
 	}
 
 }

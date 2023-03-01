@@ -18,5 +18,15 @@ public class ShippingResponse implements Serializable {
 	private String resultString;
 	private Timestamp timestamp;
 	private Shipping shipping;
+	
+	public ShippingResponse(String resultString, Shipping shipping) {
+		super();
+		this.success = Boolean.TRUE;
+		this.timestamp  = new Timestamp(System.currentTimeMillis());
+		this.resultString = resultString;
+		this.shipping = shipping;
+	}
+	
+	
 
 }

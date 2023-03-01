@@ -18,4 +18,15 @@ public class MedicationResponse implements Serializable{
 	private String resultString;
 	private Timestamp timestamp;
 	private Medication medication;
+	
+	
+	public MedicationResponse(String resultString, Medication medication) {
+		super();
+		this.success = Boolean.TRUE;
+		this.timestamp = new Timestamp(System.currentTimeMillis());
+		this.resultString = resultString;
+		this.medication = medication;
+	}
+	
+	
 }

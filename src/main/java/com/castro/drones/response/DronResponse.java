@@ -20,5 +20,12 @@ public class DronResponse implements Serializable {
 	private Dron dron;
 	
 	
+	public DronResponse(String resultString, Dron dron) {
+		super();
+		this.success =Boolean.TRUE;
+		this.timestamp = new Timestamp(System.currentTimeMillis());
+		this.resultString = resultString;
+		this.dron = dron;
+	}
 
 }

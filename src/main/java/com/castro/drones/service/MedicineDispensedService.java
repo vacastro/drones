@@ -12,6 +12,8 @@ public class MedicineDispensedService {
 	Shipping shipping=null;
 	Medication medication=null;
 	
+	
+	//TODO Agregar medicamentos a un shipping
 	public MedicineDispensed addToShimpent(Shipping shipping, Medication medication) {
 		
 		

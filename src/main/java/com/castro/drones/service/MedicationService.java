@@ -1,6 +1,5 @@
 package com.castro.drones.service;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -22,15 +21,17 @@ public class MedicationService {
 	@Autowired
 	MedicationRepository medicationRepository;
 	
-	public MedicationResponse createMedication(Medication medicationData) {
+	public MedicationResponse createMedication(Medication medication) {
 		
-		medication = validateMedication(medicationData);
-		
+		medication = validateMedication(medication);
+		MedicationResponse response = null;
 		if (medicationRepository.findByCode(medication.getCode()).isPresent()) {
 			throw new RegisterException("esa medicacion ya se encuentra en nuestras bases");
 		} else {
-			return register(medication);
+			response = new MedicationResponse("medication registered successfully", medication);
 		}
+		
+		return response;
 	}
 	
 	public Medication validateMedication(Medication medication) {
@@ -87,18 +88,6 @@ public class MedicationService {
 		medication = new Medication(name, weight, code, image);
 		
 		return medication;
-	}
-	
-	public MedicationResponse register(Medication medication) {
-
-		MedicationResponse response = new MedicationResponse();
-		response.setTimestamp(new Timestamp(System.currentTimeMillis()));
-		medicationRepository.save(medication);
-		response.setSuccess(Boolean.TRUE);
-		response.setResultString("medication registered successfully");
-		response.setMedication(medication);
-
-		return response;
 	}
 	
 	
