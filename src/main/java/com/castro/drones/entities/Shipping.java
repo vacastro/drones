@@ -43,7 +43,7 @@ public class Shipping implements Serializable{
 	
 	@ManyToOne
 	@JoinColumn(name = "idDron", nullable = true, updatable = false)
-	private Dron dron;
+	private Drone dron;
 	
 	@OneToMany (fetch= FetchType.EAGER ,cascade = CascadeType.ALL, mappedBy = "shipping", orphanRemoval=true)	
 	@JsonManagedReference
@@ -63,7 +63,9 @@ public class Shipping implements Serializable{
 		this.listItinerary = new ArrayList<Itinerary>();
 		this.listMedicine = new ArrayList<MedicineDispensed>();
 	}
-	
 
-	
+	public Shipping(long idShipping) {
+		super();
+		this.idShipping = idShipping;
+	}	
 }

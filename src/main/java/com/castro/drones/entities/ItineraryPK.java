@@ -13,8 +13,8 @@ import lombok.ToString;
 @Embeddable
 @Getter @Setter @ToString
 public class ItineraryPK implements Serializable {
+	private static final long serialVerisionUID =1L;
 	
-	//TODO chequear que la primary key compuesta este bien hecha
 	@Column
 	private Date date;
 	

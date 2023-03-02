@@ -26,7 +26,7 @@ public class RiskHistory {
 	
 	@ManyToOne
 	@JoinColumn(name = "idDron", nullable = false, updatable = false)
-	private Dron dron;
+	private Drone dron;
 	
 	@Column
 	private String riskStatus;

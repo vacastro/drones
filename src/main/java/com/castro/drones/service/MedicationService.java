@@ -1,6 +1,7 @@
 package com.castro.drones.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,21 +15,22 @@ import com.castro.drones.repository.MedicationRepository;
 import com.castro.drones.response.MedicationResponse;
 
 @Service
-public class MedicationService {
+public class MedicationService{
 	
 	Medication medication = null;
 	
 	@Autowired
 	MedicationRepository medicationRepository;
 	
-	public MedicationResponse createMedication(Medication medication) {
+	public MedicationResponse createMedication(Medication medicationData) {
 		
-		medication = validateMedication(medication);
+		medication = validateMedication(medicationData);
 		MedicationResponse response = null;
 		if (medicationRepository.findByCode(medication.getCode()).isPresent()) {
-			throw new RegisterException("esa medicacion ya se encuentra en nuestras bases");
+			throw new RegisterException("this medication is already registered in the database");
 		} else {
 			response = new MedicationResponse("medication registered successfully", medication);
+			medicationRepository.save(medication);
 		}
 		
 		return response;
@@ -47,13 +49,13 @@ public class MedicationService {
 		
 		for (int i = 0 ; i <medication.getName().trim().length(); i++) {
 			if( ! Character.isLetter(medication.getName().charAt(i)) && ! (medication.getName().charAt(i)== '-') && ! (medication.getName().charAt(i)== '_')) {
-				throw new ValidationException("no se admite el caracter " + medication.getName().charAt(i) + " para el nombre");
+				throw new ValidationException("this character is not allowed: " + medication.getName().charAt(i));
 			}		
 		}
 		
 		for (int i = 0 ; i< medication.getCode().trim().length(); i++) {
 			if(! Character.isLetter(medication.getCode().charAt(i)) && ! (medication.getCode().charAt(i)== '-') && ! (medication.getCode().charAt(i)== '_')) {
-				throw new ValidationException("no se admite el caracter " + medication.getCode().charAt(i) + " para el codigo");
+				throw new ValidationException("this character is not allowed: " + medication.getCode().charAt(i));
 			}		
 		}
 		
@@ -70,9 +72,9 @@ public class MedicationService {
 		}
 		
 		if (medication.getWeight() <0) {
-			throw new ValidationException("peso incorrecto");
+			throw new ValidationException("incorrect weight");
 		} else if (medication.getWeight() > 500) {
-			throw new ValidationException("este medicamento no se puede entregar via dron delivery");
+			throw new ValidationException("this medication cannot be delivered by drone");
 		}else {
 			weight = medication.getWeight();
 		}
@@ -80,7 +82,7 @@ public class MedicationService {
 		if(imageControl) {
 			throw new ValidationException("image can not be empty");
 		}else if (!StringUtils.right(medication.getImage().trim().toLowerCase(), 4).equals(".jpg") && !StringUtils.right(medication.getImage().trim().toLowerCase(), 4).equals(".png")) {
-			throw new ValidationException("solo se admite formatos .jpg y .png");
+			throw new ValidationException("formats supported: .jpg y .png");
 		}else {
 			image = medication.getImage().trim();
 		}
@@ -90,17 +92,27 @@ public class MedicationService {
 		return medication;
 	}
 	
-	
-	public List<Medication> findAllMedication(){
-		
-		List<Medication> medicationList =null;
+	public List<Medication> findAllMedication() {
+
+		List<Medication> medicationList = null;
 		medicationList = medicationRepository.findAll();
-		
-		if(medicationList.size()==0) {
-			throw new MedicationException("no hay medicamentos registrados aun");
+
+		if (medicationList.size() == 0) {
+			throw new MedicationException("no medication has been registered yet");
 		}
-		
+
 		return medicationList;
+	}
+
+	public Medication findMedicationById(long id) {
+
+		Optional<Medication> searchMedication = medicationRepository.findById(id);
+		if (searchMedication.isPresent()) {
+			medication = searchMedication.get();
+		} else {
+			throw new MedicationException("this medication does not exist in the database");
+		}
+		return medication;
 	}
 
 }

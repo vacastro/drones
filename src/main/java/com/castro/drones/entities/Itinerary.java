@@ -20,9 +20,8 @@ public class Itinerary implements Serializable {
 	
 	private static final long serialVerisionUID =1L;
 	
-	//TODO chequear la primary key compuesta
 	@EmbeddedId
-	private ItineraryPK pk;
+	private ItineraryPK itinerary;
 	
 	@ManyToOne
 	@EqualsAndHashCode.Exclude
@@ -34,7 +33,7 @@ public class Itinerary implements Serializable {
 	public Itinerary(Shipping shipping) {
 		super();
 		this.shipping = shipping;
-		this.pk = new ItineraryPK();
+		this.itinerary = new ItineraryPK();
 	}
 	
 	

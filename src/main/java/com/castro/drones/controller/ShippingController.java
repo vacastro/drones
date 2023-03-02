@@ -14,7 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.castro.drones.entities.Shipping;
 import com.castro.drones.entities.Itinerary;
-import com.castro.drones.model.ShippingData;
+import com.castro.drones.entities.MedicineDispensed;
+import com.castro.drones.response.DroneResponse;
 import com.castro.drones.response.ShippingResponse;
 import com.castro.drones.service.ShippingService;
 
@@ -51,17 +52,49 @@ public class ShippingController{
 		return shippingService.findAllItineraries();
 	}
 	
+	@GetMapping("/shipping-by-user/{idUser}/{idShipping}")
+	public Shipping findShippingsByUser(@PathVariable("idUser") int idUser, @PathVariable("idShipping") long idShipping){
+		return shippingService.findShippingByUser(idUser,idShipping);
+	}
+	
+	@GetMapping("/shippings-by-user/{idUser}")
+	public List<Shipping> findAllShippingsByUser(@PathVariable("idUser") int idUser){
+		return shippingService.findAllShippingsByUser(idUser);
+	}
+	
 	@PostMapping (value = "/loading-shipping")
-	public ShippingResponse loadingShipping (@RequestBody Shipping shippingData) throws Exception{
-		return shippingService.loadingShipping(shippingData);
+	public ShippingResponse loadingShipping (@RequestBody Shipping shipping) throws Exception{
+		return shippingService.loadingShipping(shipping.getIdShipping());
 	}
 	
 	@PostMapping (value = "/loaded-shipping")
-	public ShippingResponse loadedShipping (@RequestBody ShippingData shippingData) throws Exception{
-		return shippingService.loadedShipping(shippingData);
+	public ShippingResponse loadedShipping (@RequestBody Shipping shipping) throws Exception{
+		return shippingService.loadedShipping(shipping.getIdShipping());
 	}
 	
+	@PostMapping (value = "/delivering-shipping")
+	public ShippingResponse deliveringShipping (@RequestBody Shipping shipping) throws Exception{
+		return shippingService.deliveringShipping(shipping.getIdShipping());
+	}
 	
+	@PostMapping (value = "/delivered-shipping")
+	public ShippingResponse deliveredShipping (@RequestBody Shipping shipping) throws Exception{
+		return shippingService.deliveredShipping(shipping.getIdShipping());
+	}
 	
-
+	@PostMapping (value = "/returning-dron")
+	public DroneResponse returningDron (@RequestBody Shipping shipping) throws Exception{
+		return shippingService.returningDron(shipping.getIdShipping());
+	}
+	
+	@PostMapping (value = "/cancel-shipping")
+	public ShippingResponse cancelShipping (@RequestBody Shipping shipping) throws Exception{
+		return shippingService.cancelShipping(shipping.getIdShipping());
+	}
+	
+	@PostMapping (value = "/add-medication")
+	public ShippingResponse addMedication (@RequestBody MedicineDispensed medicineDispensed) throws Exception{
+		return shippingService.addMedication(medicineDispensed.getShipping().getIdShipping(), medicineDispensed.getMedication().getIdMedication());
+	}
+	
 }

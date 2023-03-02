@@ -1,23 +1,27 @@
 package com.castro.drones.service;
 
-import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.castro.drones.entities.Dron;
+import com.castro.drones.entities.Drone;
 import com.castro.drones.entities.Shipping;
 import com.castro.drones.entities.Itinerary;
+import com.castro.drones.entities.Medication;
+import com.castro.drones.entities.MedicineDispensed;
 import com.castro.drones.enums.ShippingStatus;
 import com.castro.drones.enums.Status;
+import com.castro.drones.exception.DronException;
 import com.castro.drones.exception.ShippingException;
 import com.castro.drones.exception.ValidationException;
-import com.castro.drones.model.ShippingData;
-import com.castro.drones.repository.DronRepository;
+import com.castro.drones.repository.DroneRepository;
 import com.castro.drones.repository.ItineraryRepository;
+import com.castro.drones.repository.MedicineDispensedRepository;
 import com.castro.drones.repository.ShippingRepository;
+import com.castro.drones.response.DroneResponse;
 import com.castro.drones.response.ShippingResponse;
 
 @Service
@@ -25,8 +29,10 @@ public class ShippingService {
 	
 	Shipping shipping = null;
 	Itinerary itinerary = null;
-	Dron dron =null;
+	Drone dron =null;
 	ShippingResponse response = null;
+	DroneResponse dronResponse = null;
+	Medication medication = null;
 	
 	@Autowired
 	ShippingRepository shippingRepository;
@@ -35,10 +41,16 @@ public class ShippingService {
 	ItineraryRepository itineraryRepository;
 	
 	@Autowired
-	DronRepository dronRepository;
+	DroneRepository dronRepository;
 	
 	@Autowired
-	DronService dronService;
+	DroneService dronService;
+	
+	@Autowired
+	MedicationService medicationService;
+	
+	@Autowired
+	MedicineDispensedRepository medicineDispensedRepository;
 	
 	public ShippingResponse createShipping(Shipping shippingData) {
 		
@@ -48,9 +60,16 @@ public class ShippingService {
 		shippingRepository.save(shipping);
 		itinerary = new Itinerary(shipping);
 		itineraryRepository.save(itinerary);
-		
+		shipping.getListItinerary().add(itinerary);
 		response =new ShippingResponse("shipping registered successfully", shipping);
 		return response;
+	}
+	
+	public void verifyShipping(Shipping shipping) {
+		Optional<Shipping> searchShipping = shippingRepository.findByInvoice(shipping.getInvoice());
+		if(searchShipping.isPresent()) {
+			throw new ValidationException("there is a shipping with the same invoice number");
+		}
 	}
 	
 	public List<Shipping> findAllShippings() {
@@ -68,16 +87,9 @@ public class ShippingService {
 		if(searchShipping.isPresent()) {
 			shipping = searchShipping.get();
 		}else {
-			throw new ShippingException("no se localizo el shipping");
+			throw new ShippingException("there is not a shipping with that invoice number in the database");
 		}
 		return shipping;
-	}
-	
-	public void verifyShipping(Shipping shipping) {
-		Optional<Shipping> searchShipping = shippingRepository.findByInvoice(shipping.getInvoice());
-		if(searchShipping.isPresent()) {
-			throw new ValidationException("existe un shipping con igual numero de invoice");
-		}
 	}
 	
 	public Shipping findShippingById(long id) {
@@ -86,7 +98,7 @@ public class ShippingService {
 		if(searchShipping.isPresent()) {
 			shipping = searchShipping.get();
 		}else {
-			throw new ShippingException("no se localizo el shipping");
+			throw new ShippingException("this shipping does not exist in the database");
 		}	
 		return shipping;
 	}
@@ -101,101 +113,164 @@ public class ShippingService {
 		return listItineraries;
 	}
 	
-	
-	public ShippingResponse loadingShipping (Shipping shippingData) {
-		shipping= findShippingById(shippingData.getIdShipping());
-		
+	public ShippingResponse loadingShipping (long idShipping) {
+		shipping= findShippingById(idShipping);		
 		dron = dronService.getDronReadyToUse();
-	
+		
 		shipping.setDron(dron);
 		shippingRepository.assignDevice(dron, shipping.getIdShipping());
-
-		dron.setStatus(Status.LOADING.toString());
-		dronRepository.updateDron(dron.getStatus(), dron.getIdDron());
-		itinerary = new Itinerary(shipping);
-		itinerary.getPk().setShippingStatus(ShippingStatus.ON_PROCESS.toString());
-		itineraryRepository.save(itinerary);
-
-		response = new ShippingResponse("el envio esta listo para ser cargado, se asigno un dron", shipping);
+		
+		itinerary = itineraryGenerator(dron,Status.LOADING.toString(),ShippingStatus.ON_PROCESS.toString());
+		shipping.getListItinerary().add(itinerary);
+		response = new ShippingResponse("A drone was assigned to the shipping, that is ready to be loaded with medication", shipping);
 		return response;
 	}
 	
-	
-//	public Shipping verifyShipping(long idShipping) {
-//		
-//		Optional<Shipping> shippingO = shippingRepository.findById(idShipping);
-//		if (shippingO.isPresent()) {
-//			shipping = shippingO.get();
-//		}else {
-//			throw new ShippingException("shipping number incorrect or no registered in database");
-//		}
-//		
-//		List<ShippingItinerary> itineraries = shippingItineraryRepository.getItinerayByShipping(idShipping);
-//		
-//		if(itineraries.get(0).getPk().getShippingStatus().equals(ShippingStatus.ORDERED.toString())) {
-//			return shipping;
-//		}else {
-//			throw new ShippingException("esta entrega no se puede poner a cargar porque su estado actual es " + itineraries.get(0).getPk().getShippingStatus());
-//		}
-//
-//	}
-	
-	
-	//TODO evitar que un shipping quede en estado de finalizado cuando no tiene productos agregados
-	public ShippingResponse loadedShipping(ShippingData shippingData) {
-		ShippingResponse response = new ShippingResponse();
-		response.setTimestamp(new Timestamp(System.currentTimeMillis()));
-		
+	public ShippingResponse loadedShipping(long idShipping) {
+		shipping = findShippingById(idShipping);
 		dron = shipping.getDron();
-
-		dron.setStatus(Status.LOADED.toString());
-		dronRepository.updateDron(dron.getStatus(), dron.getIdDron());
-		itinerary = new Itinerary(shipping);
-		itinerary.getPk().setShippingStatus(ShippingStatus.PACKED.toString());
-		itineraryRepository.save(itinerary);
-
-		response.setSuccess(Boolean.TRUE);
-		response.setResultString("the shipment is ready");
-		response.setShipping(shipping);
-//		response.getShipping().setListShippingItinerary(shippingItineraryRepository.getItinerayByShipping(shipping.getIdShipping()));;
+		if (shipping.getListMedicine().isEmpty()) {
+			throw new ShippingException(
+					"the cargo is empty, you must load medication to send the drone"
+					+ "");
+		} else {
+			itinerary = itineraryGenerator(dron, Status.LOADED.toString(), ShippingStatus.PACKED.toString());
+			shipping.getListItinerary().add(itinerary);
+			response = new ShippingResponse("completed cargo", shipping);
+		}
 		return response;
 	}
 	
-	public ShippingResponse deliveringShipping(ShippingData shippingData) {
-		ShippingResponse response = new ShippingResponse();
-		response.setTimestamp(new Timestamp(System.currentTimeMillis()));
-		
+	public ShippingResponse deliveringShipping(long idShipping) {
+		shipping= findShippingById(idShipping);
 		dron = shipping.getDron();
-
-		dron.setStatus(Status.DELIVERING.toString());
-		dronRepository.updateDron(dron.getStatus(), dron.getIdDron());
-		itinerary = new Itinerary(shipping);
-		itinerary.getPk().setShippingStatus(ShippingStatus.IN_TRANSIT.toString());
-		itineraryRepository.save(itinerary);
-
-		response.setSuccess(Boolean.TRUE);
-		response.setResultString("the shipment is in transit");
-		response.setShipping(shipping);
-//		response.getShipping().setListShippingItinerary(shippingItineraryRepository.getItinerayByShipping(shipping.getIdShipping()));;
+		itinerary = itineraryGenerator(dron, Status.DELIVERING.toString(),ShippingStatus.IN_TRANSIT.toString());
+		shipping.getListItinerary().add(itinerary);
+		response = new ShippingResponse("the shipping was authorized, the drone is in transit"
+				+ ""
+				+ "", shipping);
 		return response;
 	}
 	
-	public ShippingResponse deliveredShipping(ShippingData shippingData) {
-		ShippingResponse response = new ShippingResponse();
-		response.setTimestamp(new Timestamp(System.currentTimeMillis()));
-		
+	public ShippingResponse deliveredShipping(long idShipping) {
+		shipping= findShippingById(idShipping);
 		dron = shipping.getDron();
-
-		dron.setStatus(Status.DELIVERED.toString());
-		dronRepository.updateDron(dron.getStatus(), dron.getIdDron());
+		itinerary = itineraryGenerator(dron, Status.DELIVERED.toString(),ShippingStatus.DELIVERED.toString());
+		shipping.getListItinerary().add(itinerary);
+		response = new ShippingResponse("shipping delivered successfully", shipping);
+		return response;
+	}
+	
+	public Itinerary itineraryGenerator (Drone dron, String statusDron, String statusItinerary) {
+		dron.setStatus(statusDron);
+		if(!statusItinerary.equals(ShippingStatus.CANCELED.toString())) {
+			verifyShippingStatus(shipping.getListItinerary().get(shipping.getListItinerary().size()-1).getItinerary().getShippingStatus(), statusItinerary);
+		}
 		itinerary = new Itinerary(shipping);
-		itinerary.getPk().setShippingStatus(ShippingStatus.DELIVERED.toString());
+		itinerary.getItinerary().setShippingStatus(statusItinerary);
+		dronRepository.updateDron(dron.getStatus(), dron.getIdDron());
 		itineraryRepository.save(itinerary);
+		return itinerary;
+	}
+	
+	public void verifyShippingStatus(String actualStatus, String nextStatus) {
+		int currentStatus = 0;
+		int newStatus = 0;
+		ShippingStatus[] listShippingStatus = ShippingStatus.values();
+		if (!actualStatus.equals(ShippingStatus.CANCELED.toString())) {
+			for (int i = 0; i < listShippingStatus.length; i++) {
+				if (listShippingStatus[i].toString().equals(actualStatus)) {
+					currentStatus = i;
+				}
+				if (listShippingStatus[i].toString().equals(nextStatus)) {
+					newStatus = i;
+				}
+			}
+		}else {
+			throw new ShippingException("the shipping cannot be modified because it is canceled");
+		}
 
-		response.setSuccess(Boolean.TRUE);
-		response.setResultString("the shipment is in delivered");
-		response.setShipping(shipping);
-//		response.getShipping().setListShippingItinerary(shippingItineraryRepository.getItinerayByShipping(shipping.getIdShipping()));;
+		if (!(currentStatus + 1 == newStatus)) {
+			throw new ValidationException("this operation is not allowed because de shipping status is: "
+					+ actualStatus);
+		}
+	}
+	
+	public DroneResponse returningDron(long idShipping) {
+		shipping = findShippingById(idShipping);
+		String nextStatus = Status.RETURNING.toString();
+		if (dron.getStatus().equals(Status.DELIVERED.toString())) {
+			dron.setStatus(nextStatus);
+			dronRepository.updateDron(nextStatus, dron.getIdDron());
+			dronResponse = new DroneResponse("the shipping is delivered, the drone is returning", dron);
+		}else {
+			throw new DronException("the drone cannnot return because the status is : " + dron.getStatus());
+		}
+		
+		return dronResponse;
+	}
+	
+	public ShippingResponse addMedication(long idShipping, long idMedication) {
+		shipping = findShippingById(idShipping);
+		medication = medicationService.findMedicationById(idMedication);
+		dron = new Drone();
+		String shippingStatus =shipping.getListItinerary().get(shipping.getListItinerary().size() - 1).getItinerary().getShippingStatus();
+		int weight = shipping.getWeight() + medication.getWeight();
+		if (shippingStatus.equals(ShippingStatus.ON_PROCESS.toString())) {
+			if (weight < dron.getWEIGHT_LIMIT()) {
+				MedicineDispensed medicineAdd = new MedicineDispensed(medication, shipping);
+				medicineDispensedRepository.save(medicineAdd);
+				shipping.setWeight(weight);
+				shipping.getListMedicine().add(medicineAdd);
+				shippingRepository.updateWeight(weight, shipping.getIdShipping());
+				response = new ShippingResponse("medication added to the shipment", shipping);
+			} else {
+				throw new ShippingException("can not add this medication, because exceeds the allowed weight");
+			}
+		}else {
+			throw new ShippingException("can not add this medication, because shipping status: "+shippingStatus);
+		}
+		return response;
+	}
+
+	public Shipping findShippingByUser(int idUser, long idShipping) {
+		if(shippingRepository.findShippingByUser(idUser, idShipping).isPresent()) {
+			shipping = shippingRepository.findShippingByUser(idUser, idShipping).get();
+		}else {
+			throw new ShippingException("data does not match");
+		}	
+		return shipping;
+	}
+	
+	public List<Shipping> findAllShippingsByUser(int idUser) {
+		List<Shipping> allShippings = new ArrayList<Shipping>();
+		if(shippingRepository.findAllShippingByUser(idUser).isPresent()) {
+			allShippings = shippingRepository.findAllShippingByUser(idUser).get();
+		}else {
+			throw new ShippingException("user does not have shipping");
+		}	
+		return allShippings;
+	}
+	
+	public ShippingResponse cancelShipping(long idShipping) {
+		shipping = findShippingById(idShipping);
+		dron = shipping.getDron();
+		String actualStatus = shipping.getListItinerary().get(shipping.getListItinerary().size() - 1).getItinerary()
+				.getShippingStatus();
+		if(dron ==null) {
+			itinerary = new Itinerary(shipping);
+			itinerary.getItinerary().setShippingStatus(ShippingStatus.CANCELED.toString());
+			itineraryRepository.save(itinerary);
+			shipping.getListItinerary().add(itinerary);
+			response = new ShippingResponse("shipping has been canceled successfully", shipping);
+		}else if (actualStatus.equals(ShippingStatus.ON_PROCESS.toString())
+				|| actualStatus.equals(ShippingStatus.PACKED.toString())) {
+			itinerary = itineraryGenerator(dron, Status.IDLE.toString(), ShippingStatus.CANCELED.toString());
+			shipping.getListItinerary().add(itinerary);
+			response = new ShippingResponse("shipping has been canceled successfully", shipping);
+		}else {
+			throw new ShippingException("shipping can not be canceled because, his status is : "+ actualStatus);
+		}
 		return response;
 	}
 

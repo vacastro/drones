@@ -1,5 +1,7 @@
 package com.castro.drones.entities;
 
+import java.io.Serializable;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +13,9 @@ import lombok.ToString;
 @Getter @Setter @AllArgsConstructor @NoArgsConstructor @Data @ToString
 @Entity
 @Table
-public class Medication {
+public class Medication implements Serializable {
+	
+	private static final long serialVerisionUID =1L;
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,9 +41,11 @@ public class Medication {
 		this.code = code;
 		this.image = image;
 	}
-	
-	
-	
-	
+
+
+	public Medication(long idMedication) {
+		super();
+		this.idMedication = idMedication;
+	}
 	
 }

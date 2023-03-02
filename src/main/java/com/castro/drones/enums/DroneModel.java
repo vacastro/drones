@@ -1,6 +1,6 @@
 package com.castro.drones.enums;
 
-public enum DronModel {
+public enum DroneModel {
 	
 	LIGHTWEIGHT, 
 	MIDDLEWEIGHT,
