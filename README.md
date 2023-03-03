@@ -45,7 +45,9 @@ In order to carry out the proposed exercise, it was necessary to create an addit
 				CANCEL: This status allows the user to cancel his order if he does not wish to continue with its processing. Only orders that are in the ORDERED, ON PROCESS, PACKED status can be cancelled. It will not be possible to cancel an order when its status is ON TRANSIT, DELIVERING, or DELIVERED. When this action is executed, the drone will change its state to IDLE again.
 			
 Clarifications about itineraries: this application only allows actions to be carried out in order, so that if the shipping status is IN TRANSIT, for example, a previous action cannot be executed (PACKED, ON PROCESS, ORDERED). Nor does it allow you to perform the execution of the same action again. You should always proceed with the next action (with the exception of the CANCEL action that can be executed in the manner mentioned in the previous paragraph). The states of the itineraries will always go to the next state:
+
 ORDERED -> ON PROCESS -> PACKED ->IN TRANSIT -> DELIVERED
+
 If you try to perform an action in the wrong order, the application will show you the error message (Shipping Exception).
 
 In addition to this exercise, the execution of a periodic task was requested to control the state of the drone batteries. In order to perform this task, a table was created in the database called Risk History, which will record the battery level of the drones every 3 minutes. If there are no drones in the database, the task will not give any results. This action checks the battery level and assigns it a risk value:
