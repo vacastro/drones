@@ -71,7 +71,7 @@ public class MedicationService{
 			code = medication.getCode().trim().toUpperCase();
 		}
 		
-		if (medication.getWeight() <0) {
+		if (medication.getWeight() <=0) {
 			throw new ValidationException("incorrect weight");
 		} else if (medication.getWeight() > 500) {
 			throw new ValidationException("this medication cannot be delivered by drone");
