@@ -246,10 +246,14 @@ public class ShippingService {
 		List<Shipping> allShippings = new ArrayList<Shipping>();
 		if(shippingRepository.findAllShippingByUser(idUser).isPresent()) {
 			allShippings = shippingRepository.findAllShippingByUser(idUser).get();
-		}else {
+			
+		}
+		
+		if(allShippings.isEmpty()) {
 			throw new ShippingException("user does not have shipping");
-		}	
-		return allShippings;
+		}else {
+			return allShippings;
+		}
 	}
 	
 	public ShippingResponse cancelShipping(long idShipping) {

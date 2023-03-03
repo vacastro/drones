@@ -44,7 +44,7 @@ public class ShippingController{
 	
 	@GetMapping("/find-shipping-by-invoice/{invoice}")
 	public Shipping findShippingByInvoice(@PathVariable("invoice") int invoice){
-		return shippingService.findShippingById(invoice);
+		return shippingService.findShippingByInvoice(invoice);
 	}
 	
 	@GetMapping("/all-itineraries")
