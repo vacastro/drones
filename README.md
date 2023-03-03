@@ -51,7 +51,9 @@ ORDERED -> ON PROCESS -> PACKED ->IN TRANSIT -> DELIVERED
 If you try to perform an action in the wrong order, the application will show you the error message (Shipping Exception).
 
 In addition to this exercise, the execution of a periodic task was requested to control the state of the drone batteries. In order to perform this task, a table was created in the database called Risk History, which will record the battery level of the drones every 3 minutes. If there are no drones in the database, the task will not give any results. This action checks the battery level and assigns it a risk value:
+
 RISK STATUS:
+
 - 	OK: when the battery level is greater than 50%.
 - 	WARNING: when the battery level is between 25% and 50%.
 - 	CRITICAL: when the battery level is less than 25%.
