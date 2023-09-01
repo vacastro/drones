@@ -29,6 +29,7 @@ public class RiskHistory {
 	private Drone dron;
 	
 	@Column
-	private String riskStatus;
+	@Enumerated(EnumType.STRING)
+	private RiskStatus riskStatus;
 
 }

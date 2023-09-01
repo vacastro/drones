@@ -19,12 +19,13 @@ public class ItineraryPK implements Serializable {
 	private Date date;
 	
 	@Column
-	private String shippingStatus;
+	@Enumerated(EnumType.STRING)
+	private ShippingStatus shippingStatus;
 
 	public ItineraryPK() {
 		super();
 		this.date = new Date();
-		this.shippingStatus = ShippingStatus.ORDERED.toString();
+		this.shippingStatus = ShippingStatus.ORDERED;
 	}
 	
 	

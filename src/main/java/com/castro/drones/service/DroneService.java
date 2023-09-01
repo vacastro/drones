@@ -58,9 +58,9 @@ public class DroneService {
 	public Drone validationDrone(Drone drone) {
 		
 		boolean serialNum = drone.getSerialNumber().trim().equals(StringUtils.EMPTY);
-		boolean model = drone.getDronModel().trim().equals(StringUtils.EMPTY);
+		boolean model = drone.getDronModel() == null;
 
-		String dModel = null;
+		DroneModel dModel = null;
 		String serialN = "";
 
 		if (serialNum) {
@@ -75,8 +75,8 @@ public class DroneService {
 			throw new ValidationException("Dron Model can not be empty");
 		} else {
 			for (DroneModel dronModel : DroneModel.values()) {
-				if (dronModel.toString().equals(drone.getDronModel().trim().toUpperCase())) {
-					dModel = dronModel.toString();
+				if (dronModel.equals(drone.getDronModel())) {
+					dModel = dronModel;
 				}
 			}
 		}
@@ -144,8 +144,8 @@ public class DroneService {
 	
 	public DroneResponse confirmReturning(long idDron) {
 		drone = getDroneByID(idDron);
-		String nextStatus = Status.IDLE.toString();
-		if (drone.getStatus().equals(Status.RETURNING.toString())) {
+		Status nextStatus = Status.IDLE;
+		if (drone.getStatus().equals(Status.RETURNING)) {
 			drone.setStatus(nextStatus);
 			droneRepository.updateDron(nextStatus, drone.getIdDron());
 			response = new DroneResponse("dron landed successfully", drone);
@@ -158,9 +158,9 @@ public class DroneService {
 	public DroneResponse rechargeBattery(long idDrone) {
 		drone = getDroneByID(idDrone);
 		drone.setBatteryCapacity(100);
-		if (drone.getStatus().equalsIgnoreCase(Status.IDLE.toString())
-				|| drone.getStatus().equalsIgnoreCase(Status.LOADING.toString())
-				|| drone.getStatus().equalsIgnoreCase(Status.LOADED.toString())) {
+		if (drone.getStatus().equals(Status.IDLE)
+				|| drone.getStatus().equals(Status.LOADING)
+				|| drone.getStatus().equals(Status.LOADED)) {
 			droneRepository.updateBattery(100, drone.getIdDron());
 			response = new DroneResponse("battery recharged successfully", drone);
 		}else {

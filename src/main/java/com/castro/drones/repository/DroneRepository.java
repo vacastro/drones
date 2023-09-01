@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.castro.drones.entities.Drone;
+import com.castro.drones.enums.Status;
 
 @Repository
 public interface DroneRepository extends JpaRepository<Drone, Long>{
@@ -23,7 +24,7 @@ public interface DroneRepository extends JpaRepository<Drone, Long>{
 	@Transactional
 	@Modifying()
 	@Query(value = "UPDATE Drone u SET u.status = ?1 WHERE u.idDron = ?2")
-	void updateDron(String status, long idDron );
+	void updateDron(Status status, long idDron );
 	
 	@Transactional
 	@Modifying()

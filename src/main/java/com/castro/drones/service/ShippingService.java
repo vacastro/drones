@@ -120,7 +120,7 @@ public class ShippingService {
 		shipping.setDron(dron);
 		shippingRepository.assignDevice(dron, shipping.getIdShipping());
 		
-		itinerary = itineraryGenerator(dron,Status.LOADING.toString(),ShippingStatus.ON_PROCESS.toString());
+		itinerary = itineraryGenerator(dron,Status.LOADING,ShippingStatus.ON_PROCESS);
 		shipping.getListItinerary().add(itinerary);
 		response = new ShippingResponse("A drone was assigned to the shipping, that is ready to be loaded with medication", shipping);
 		return response;
@@ -134,7 +134,7 @@ public class ShippingService {
 					"the cargo is empty, you must load medication to send the drone"
 					+ "");
 		} else {
-			itinerary = itineraryGenerator(dron, Status.LOADED.toString(), ShippingStatus.PACKED.toString());
+			itinerary = itineraryGenerator(dron, Status.LOADED, ShippingStatus.PACKED);
 			shipping.getListItinerary().add(itinerary);
 			response = new ShippingResponse("completed cargo", shipping);
 		}
@@ -144,7 +144,7 @@ public class ShippingService {
 	public ShippingResponse deliveringShipping(long idShipping) {
 		shipping= findShippingById(idShipping);
 		dron = shipping.getDron();
-		itinerary = itineraryGenerator(dron, Status.DELIVERING.toString(),ShippingStatus.IN_TRANSIT.toString());
+		itinerary = itineraryGenerator(dron, Status.DELIVERING,ShippingStatus.IN_TRANSIT);
 		shipping.getListItinerary().add(itinerary);
 		response = new ShippingResponse("the shipping was authorized, the drone is in transit"
 				+ ""
@@ -155,15 +155,15 @@ public class ShippingService {
 	public ShippingResponse deliveredShipping(long idShipping) {
 		shipping= findShippingById(idShipping);
 		dron = shipping.getDron();
-		itinerary = itineraryGenerator(dron, Status.DELIVERED.toString(),ShippingStatus.DELIVERED.toString());
+		itinerary = itineraryGenerator(dron, Status.DELIVERED,ShippingStatus.DELIVERED);
 		shipping.getListItinerary().add(itinerary);
 		response = new ShippingResponse("shipping delivered successfully", shipping);
 		return response;
 	}
 	
-	public Itinerary itineraryGenerator (Drone dron, String statusDron, String statusItinerary) {
+	public Itinerary itineraryGenerator (Drone dron, Status statusDron, ShippingStatus statusItinerary) {
 		dron.setStatus(statusDron);
-		if(!statusItinerary.equals(ShippingStatus.CANCELED.toString())) {
+		if(!statusItinerary.equals(ShippingStatus.CANCELED)) {
 			verifyShippingStatus(shipping.getListItinerary().get(shipping.getListItinerary().size()-1).getItinerary().getShippingStatus(), statusItinerary);
 		}
 		itinerary = new Itinerary(shipping);
@@ -173,16 +173,16 @@ public class ShippingService {
 		return itinerary;
 	}
 	
-	public void verifyShippingStatus(String actualStatus, String nextStatus) {
+	public void verifyShippingStatus(ShippingStatus actualStatus, ShippingStatus nextStatus) {
 		int currentStatus = 0;
 		int newStatus = 0;
 		ShippingStatus[] listShippingStatus = ShippingStatus.values();
-		if (!actualStatus.equals(ShippingStatus.CANCELED.toString())) {
+		if (!actualStatus.equals(ShippingStatus.CANCELED)) {
 			for (int i = 0; i < listShippingStatus.length; i++) {
-				if (listShippingStatus[i].toString().equals(actualStatus)) {
+				if (listShippingStatus[i].equals(actualStatus)) {
 					currentStatus = i;
 				}
-				if (listShippingStatus[i].toString().equals(nextStatus)) {
+				if (listShippingStatus[i].equals(nextStatus)) {
 					newStatus = i;
 				}
 			}
@@ -198,8 +198,8 @@ public class ShippingService {
 	
 	public DroneResponse returningDron(long idShipping) {
 		shipping = findShippingById(idShipping);
-		String nextStatus = Status.RETURNING.toString();
-		if (dron.getStatus().equals(Status.DELIVERED.toString())) {
+		Status nextStatus = Status.RETURNING;
+		if (dron.getStatus().equals(Status.DELIVERED)) {
 			dron.setStatus(nextStatus);
 			dronRepository.updateDron(nextStatus, dron.getIdDron());
 			dronResponse = new DroneResponse("the shipping is delivered, the drone is returning", dron);
@@ -214,9 +214,9 @@ public class ShippingService {
 		shipping = findShippingById(idShipping);
 		medication = medicationService.findMedicationById(idMedication);
 		dron = new Drone();
-		String shippingStatus =shipping.getListItinerary().get(shipping.getListItinerary().size() - 1).getItinerary().getShippingStatus();
+		ShippingStatus shippingStatus =shipping.getListItinerary().get(shipping.getListItinerary().size() - 1).getItinerary().getShippingStatus();
 		int weight = shipping.getWeight() + medication.getWeight();
-		if (shippingStatus.equals(ShippingStatus.ON_PROCESS.toString())) {
+		if (shippingStatus.equals(ShippingStatus.ON_PROCESS)) {
 			if (weight < dron.getWEIGHT_LIMIT()) {
 				MedicineDispensed medicineAdd = new MedicineDispensed(medication, shipping);
 				medicineDispensedRepository.save(medicineAdd);
@@ -259,17 +259,17 @@ public class ShippingService {
 	public ShippingResponse cancelShipping(long idShipping) {
 		shipping = findShippingById(idShipping);
 		dron = shipping.getDron();
-		String actualStatus = shipping.getListItinerary().get(shipping.getListItinerary().size() - 1).getItinerary()
+		ShippingStatus actualStatus = shipping.getListItinerary().get(shipping.getListItinerary().size() - 1).getItinerary()
 				.getShippingStatus();
 		if(dron ==null) {
 			itinerary = new Itinerary(shipping);
-			itinerary.getItinerary().setShippingStatus(ShippingStatus.CANCELED.toString());
+			itinerary.getItinerary().setShippingStatus(ShippingStatus.CANCELED);
 			itineraryRepository.save(itinerary);
 			shipping.getListItinerary().add(itinerary);
 			response = new ShippingResponse("shipping has been canceled successfully", shipping);
-		}else if (actualStatus.equals(ShippingStatus.ON_PROCESS.toString())
-				|| actualStatus.equals(ShippingStatus.PACKED.toString())) {
-			itinerary = itineraryGenerator(dron, Status.IDLE.toString(), ShippingStatus.CANCELED.toString());
+		}else if (actualStatus.equals(ShippingStatus.ON_PROCESS)
+				|| actualStatus.equals(ShippingStatus.PACKED)) {
+			itinerary = itineraryGenerator(dron, Status.IDLE, ShippingStatus.CANCELED);
 			shipping.getListItinerary().add(itinerary);
 			response = new ShippingResponse("shipping has been canceled successfully", shipping);
 		}else {

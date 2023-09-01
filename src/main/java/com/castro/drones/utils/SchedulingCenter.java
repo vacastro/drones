@@ -36,11 +36,11 @@ public class SchedulingCenter {
 				log.setDate(new Date());
 				log.setDron(dron);
 				if(dron.getBatteryCapacity()>50) {
-					log.setRiskStatus(RiskStatus.OK.toString());
+					log.setRiskStatus(RiskStatus.OK);
 				}else if(dron.getBatteryCapacity()>25 && dron.getBatteryCapacity()<=50) {
-					log.setRiskStatus(RiskStatus.WARNING.toString());
+					log.setRiskStatus(RiskStatus.WARNING);
 				}else {
-					log.setRiskStatus(RiskStatus.CRITICAL.toString());
+					log.setRiskStatus(RiskStatus.CRITICAL);
 				}
 				riskHistoryRepository.save(log);		
 			}
@@ -56,7 +56,7 @@ public class SchedulingCenter {
 		if(!listDrones.isEmpty()) {
 			
 			for(Drone dron: listDrones) {
-				if(dron.getStatus().equals(Status.DELIVERING.toString()) || dron.getStatus().equals(Status.RETURNING.toString())) {
+				if(dron.getStatus().equals(Status.DELIVERING) || dron.getStatus().equals(Status.RETURNING)) {
 					dronInTransit.add(dron);
 				}
 			}
